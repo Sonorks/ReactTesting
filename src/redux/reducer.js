@@ -1,77 +1,90 @@
-const SET_LOGIN_PENDING = 'SET_LOGIN_PENDING';
-const SET_LOGIN_SUCCESS = 'SET_LOGIN_SUCCESS';
-const SET_LOGIN_ERROR = 'SET_LOGIN_ERROR';
+import Promise from 'es6-promise';
+const LOGEO_PENDIENTE = "LOGEO_PENDIENTE";
+const LOGEO_SATISFACTORIO = "LOGEO_SATISFACTORIO";
+const LOGEO_ERROR = "LOGEO_ERROR";
 
-export function login(email, password) {
-  return dispatch => {
-    dispatch(setLoginPending(true));
-    dispatch(setLoginSuccess(false));
-    dispatch(setLoginError(null));
 
-    callLoginApi(email, password, error => {
-      dispatch(setLoginPending(false));
-      if (!error) {
-        dispatch(setLoginSuccess(true));
-      } else {
-        dispatch(setLoginError(error));
-      }
-    });
-  }
-}
-
-function setLoginPending(isLoginPending) {
-  return {
-    type: SET_LOGIN_PENDING,
+function setLoginPending(isLoginPending){
+  return{
+    type: LOGEO_PENDIENTE,
     isLoginPending
   };
 }
 
-function setLoginSuccess(isLoginSuccess) {
-  return {
-    type: SET_LOGIN_SUCCESS,
+function setLoginSuccess(isLoginSuccess){
+  return{
+    type: LOGEO_SATISFACTORIO,
     isLoginSuccess
   };
 }
 
-function setLoginError(loginError) {
+function setLoginError(loginError){
   return {
-    type: SET_LOGIN_ERROR,
+    type: LOGEO_ERROR,
     loginError
+  };
+}
+
+export function login(user, password){
+  return dispatch => {
+    dispatch(setLoginPending(true));
+    dispatch(setLoginSuccess(false));
+    dispatch(setLoginError(false));
+    sendLoginRequest(user,password)
+    .then(success => {
+      dispatch(setLoginPending(false));
+      dispatch(setLoginSuccess(true));
+    })
+    .catch(err => {
+      dispatch(setLoginPending(false));
+      dispatch(setLoginError(err));
+    });
   }
 }
 
-function callLoginApi(email, password, callback) {
-  setTimeout(() => {
-    if (email === 'admin@example.com' && password === 'admin') {
-      return callback(null);
-    } else {
-      return callback(new Error('Invalid email and password'));
-    }
-  }, 1000);
-}
-
 export default function reducer(state = {
-  isLoginSuccess: false,
   isLoginPending: false,
+  isLoginSuccess: false,
   loginError: null
-}, action) {
-  switch (action.type) {
-    case SET_LOGIN_PENDING:
-      return Object.assign({}, state, {
-        isLoginPending: action.isLoginPending
-      });
-
-    case SET_LOGIN_SUCCESS:
+}, action){
+  switch (action.type){
+    case LOGEO_SATISFACTORIO:
       return Object.assign({}, state, {
         isLoginSuccess: action.isLoginSuccess
       });
-
-    case SET_LOGIN_ERROR:
+    case LOGEO_PENDIENTE:
+      return Object.assign({}, state, {
+        isLoginPending: action.isLoginPending
+      });
+    case LOGEO_ERROR:
       return Object.assign({}, state, {
         loginError: action.loginError
       });
-
     default:
       return state;
   }
 }
+
+function sendLoginRequest(user,password){
+      return new Promise((resolve,reject) =>{
+        fetch('https://rpsnode.herokuapp.com/api/user/'+user)
+        .then((response) =>{
+          return response.json();
+        })
+        .then((usuario) =>{
+          console.log("pass del fetch: "+usuario[0].password+ " pass del metodo: "+password);
+          if(usuario[0].password===password){
+            console.log("datos concuerdan papu");
+            return resolve(true);
+          }
+          else{
+            return reject(new Error('Usuario o contraseña invalidos'));
+          }
+        })
+      });
+  }
+
+
+
+//Etica: encontrar deberes y prohibiciones encontrar el articulo que resuelve el caso.
+

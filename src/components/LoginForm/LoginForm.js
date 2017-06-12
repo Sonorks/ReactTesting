@@ -1,67 +1,86 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { login } from '../../redux/reducer';
+var Modal = require('react-modal');
 import './LoginForm.css';
+const customStyles = {
+      content : {
+        top                   : '50%',
+        left                  : '50%',
+        right                 : 'auto',
+        bottom                : 'auto',
+        marginRight           : '-50%',
+        transform             : 'translate(-50%, -50%)'
+      }
+    };
+class LoginForm extends Component{
 
-class LoginForm extends Component {
 
-  constructor(props) {
-    super(props);
-    this.state = {};
-    this.onSubmit = this.onSubmit.bind(this);
-  }
-
-  render() {
-    let {email, password} = this.state;
-    let {isLoginPending, isLoginSuccess, loginError} = this.props;
-    return (
-      <form name="loginForm" onSubmit={this.onSubmit}>
-        <div className="form-group-collection">
-          <div className="form-group">
-            <label>Email:</label>
-            <input type="email" name="email" onChange={e => this.setState({email: e.target.value})} value={email}/>
-          </div>
-
-          <div className="form-group">
-            <label>Password:</label>
-            <input type="password" name="password" onChange={e => this.setState({password: e.target.value})} value={password}/>
-          </div>
-        </div>
-
-        <input type="submit" value="Login" />
-
-        <div className="message">
-          { isLoginPending && <div>Please wait...</div> }
-          { isLoginSuccess && <div>Success.</div> }
-          { loginError && <div>{loginError.message}</div> }
-        </div>
-      </form>
-    )
-  }
-
-  onSubmit(e) {
-    e.preventDefault();
-    let { email, password } = this.state;
-    this.props.login(email, password);
-    this.setState({
-      email: '',
-      password: ''
-    });
-  }
+    constructor(props){
+        super(props);
+        this.state = {};
+    }
+    render(){
+        let {user,password} =this.state;
+        let {isLoginPending, isLoginSuccess, loginError} = this.props;
+        return(
+            <div>
+            <Modal
+              isOpen={true}
+              onAfterOpen={this.afterOpenModal}
+              onRequestClose={this.closeModal}
+              style={customStyles}
+              contentLabel="Login"
+            >
+            <div className="login-form-wrapper">
+              <form onSubmit={this.doLogin}>
+                <h4> Datos de usuario </h4>
+                <input name="user" type="text" placeholder="Usuario" onChange={e => this.setState({user: e.target.value})}/>
+                <input name="password" type="password" placeholder="Contraseña" onChange={e => this.setState({password: e.target.value})}/>
+                <center><a href="#">Olvidaste tu contraseña?</a></center> 
+                  { isLoginPending && <div>Please wait...</div> }
+                  { isLoginSuccess && <div>Welcome back!</div> }
+                  { loginError && <div>Invalid User o password</div> } 
+                <center><input className="button" type="submit" value="Ingresar"/> <button onClick={this.closeModal}>Cancelar</button></center>             
+              </form>   
+            </div>
+            </Modal>
+            </div>
+        );
+    }
+    modalIsOpen = () => {
+        this.setState({modalIsOpen: true});
+    }
+    afterOpenModal = () => {
+        //this.refs.subtitle.style.color = '#f00';
+    }
+    closeModal = () => {
+        this.setState({modalIsOpen: false});
+    }
+    doLogin = (e) => {
+        e.preventDefault();
+        let {user,password} = this.state;
+        this.props.login(user,password);
+        this.setState({
+          user:'',
+          password: ''
+        });
+    }
 }
 
 const mapStateToProps = (state) => {
-  return {
-    isLoginPending: state.isLoginPending,
-    isLoginSuccess: state.isLoginSuccess,
-    loginError: state.loginError
-  };
+    return {
+        isLoginPending: state.isLoginPending,
+        isLoginSuccess: state.isLoginSuccess,
+        loginError: state.loginError
+    };
 }
 
 const mapDispatchToProps = (dispatch) => {
-  return {
-    login: (email, password) => dispatch(login(email, password))
-  };
+    return{
+        login: (user, password) => dispatch(login(user,password))
+    };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(LoginForm);
+
+export default connect(mapStateToProps,mapDispatchToProps)(LoginForm);
