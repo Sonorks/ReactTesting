@@ -67,18 +67,28 @@ export default function reducer(state = {
 
 function sendLoginRequest(user,password){
       return new Promise((resolve,reject) =>{
-        fetch('https://rpsnode.herokuapp.com/api/user/'+user)
+        var data = {
+          "userLis": user,
+          "passLis": password
+        }
+        console.log(data.userLis);
+        //,  {method: "POST", body: data}
+        fetch('http://192.168.30.57:3001/pruebaLogin', {method: "POST", headers: {
+                                                                'Accept': 'application/json, text/plain, */*',
+                                                                'Content-Type': 'application/json'
+                                                                },body: data})
         .then((response) =>{
           return response.json();
         })
-        .then((usuario) =>{
-          console.log("pass del fetch: "+usuario[0].password+ " pass del metodo: "+password);
-          if(usuario[0].password===password){
+        .then((data) =>{
+          console.log(data);
+          console.log("respuesta del servicio: "+data.status);
+          if(data.code===100){
             console.log("datos concuerdan papu");
             return resolve(true);
           }
           else{
-            return reject(new Error('Usuario o contraseña invalidos'));
+            return reject(new Error('Usuario o contraseña invalidos, codigo de error '+ data.code));
           }
         })
       });
@@ -86,5 +96,6 @@ function sendLoginRequest(user,password){
 
 
 
-//Etica: encontrar deberes y prohibiciones encontrar el articulo que resuelve el caso.
+
+
 
